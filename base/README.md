@@ -2,7 +2,7 @@ Base lab
 =
 
 This lab contains:
-* DC: Windows 2016 server, DC of a domain "domain.local"
+* DC: Windows 2016 server, DC of a domain "windomain.local"
 * SRV: Windows 2016 server, joined to the domain
 * Client: Windows 10 client, joined to the domain
 
@@ -24,5 +24,5 @@ $ vagrant up srv client --provision
 Usage
 -
 
-The user `domain.local\vagrant:vagrant` is able to RDP.
+The user `windomain.local\vagrant:vagrant` is able to RDP.
 For instance, one can log-in on the Client, then `mstsc` on `srv`, with the `vagrant` account.
