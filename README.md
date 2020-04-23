@@ -11,6 +11,7 @@ Available labs
 -
 
 * [Base](base/): A Win2016 DC + Win2016 server joined + Win10 client joined. Its a setup commonly used for tests in Windows environment, quite useful to fire, test, and forget.
+* [Administration Tier-1, with AuthenticationPolicy and RestrictedAdmin](/admin-t1-restricted): Illustration of an administration method, on a base-like lab, for interactive administration on untrested machine.
 
 Resources
 -
