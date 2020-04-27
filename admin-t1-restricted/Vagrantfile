@@ -50,6 +50,7 @@ Vagrant.configure("2") do |config|
 
   
     cfg.vm.provider "vmware_desktop" do |v, override|
+      override.vm.box = "detectionlab/win2016"
       v.vmx["displayname"] = CONFIG[:dc][:name] 
       v.memory = CONFIG[:dc][:memory] 
       v.cpus = CONFIG[:dc][:cpus] 
@@ -105,6 +106,7 @@ Vagrant.configure("2") do |config|
     end
 
     cfg.vm.provider "vmware_desktop" do |v, override|
+      override.vm.box = "detectionlab/win2016"
       v.vmx["displayname"] = CONFIG[:srv][:name]
       v.memory = CONFIG[:srv][:memory]
       v.cpus = CONFIG[:srv][:cpus]
@@ -158,6 +160,7 @@ Vagrant.configure("2") do |config|
     end
     
     cfg.vm.provider "vmware_desktop" do |v, override|
+      override.vm.box = "detectionlab/win10"
       v.vmx["displayname"] = CONFIG[:client][:name]
       v.vmx["gui.fullscreenatpoweron"] = "FALSE"
       v.vmx["gui.viewModeAtPowerOn"] = "windowed"
