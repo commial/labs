@@ -158,7 +158,7 @@ mimikatz # sekurlsa::logonPasswords
 
 But this time, the credentials of `pikachu` are no more accessible! (how would they?)
 
-The secret our session use is the one of `CLIENT$`, something an attacker root on `Client` already has.
+The secret our session use is the one of `SRV$`, something an attacker root on `Srv` already has.
 
 ```
 Authentication Id : 0 ; 975893 (00000000:000ee415)
@@ -178,7 +178,7 @@ SID               : S-1-5-21-1901789854-418502547-2738234678-1105
 
 ![mimikatz post AuthPol](doc/mimi_post_ap.png)
 
-As we have the token of `CLIENT$`, we still have access to network resources with its rights:
+As we have the token of `SRV$`, we still have access to network resources with its rights:
 
 ![Accessing network drives](doc/net_access.png)
 
