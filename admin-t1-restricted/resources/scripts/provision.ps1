@@ -27,9 +27,9 @@ if ($env:COMPUTERNAME -imatch 'vagrant') {
   Write-Host -fore red "$('[{0:HH:mm}]' -f (Get-Date)) Current domain is set to 'workgroup'. Time to join the domain!"
 
   if ($env:COMPUTERNAME -imatch 'dc') {
-    . c:\vagrant\scripts\create-domain.ps1 192.168.38.102
+    . c:\vagrant\resources\scripts\create-domain.ps1 192.168.38.102
   } else {
-    . c:\vagrant\scripts\join-domain.ps1
+    . c:\vagrant\resources\scripts\join-domain.ps1
   }
   Write-Host -fore red 'Hint: vagrant reload' $box '--provision'
 
