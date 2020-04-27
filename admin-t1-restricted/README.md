@@ -138,7 +138,7 @@ This time, we launch `mstsc /restrictedadmin` to use RestrictedAdmin.
 
 ![mstsc restrictedadmin](doc/mstsc_restricted.png)
 
-Note we are not prompted for `pikachu` password. Indeed, for the MLA connection, its Kerberos ticket is enough. The password was use to open the session on the remote server, which is no longer needed thanks to RestrictedAdmin.
+Note we are not prompted for `pikachu` password. Indeed, for the NLA connection, its Kerberos ticket is enough. The password was use to open the session on the remote server, which is no longer needed thanks to RestrictedAdmin.
 
 ```
 C:\Windows\system32>C:\Tools\Mimikatz\x64\mimikatz.exe
