@@ -10,7 +10,7 @@ c:\windows\system32\tzutil.exe /s "UTC"
 # Ping DetectionLab server for usage statistics
 # curl -userAgent "DetectionLab-$box" "https://detectionlab.network/$box" -UseBasicParsing | out-null
 
-Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) Disable IPv6 on all network adatpers..."
+Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) Disable IPv6 on all network adaptpers..."
 Get-NetAdapterBinding -ComponentID ms_tcpip6 | ForEach-Object {Disable-NetAdapterBinding -Name $_.Name -ComponentID ms_tcpip6}
 Get-NetAdapterBinding -ComponentID ms_tcpip6 
 # https://support.microsoft.com/en-gb/help/929852/guidance-for-configuring-ipv6-in-windows-for-advanced-users
@@ -27,9 +27,9 @@ if ($env:COMPUTERNAME -imatch 'vagrant') {
   Write-Host -fore red "$('[{0:HH:mm}]' -f (Get-Date)) Current domain is set to 'workgroup'. Time to join the domain!"
 
   if ($env:COMPUTERNAME -imatch 'dc') {
-    . c:\vagrant\scripts\create-domain.ps1 192.168.38.102
+    . c:\vagrant\resources\scripts\create-domain.ps1 192.168.38.102
   } else {
-    . c:\vagrant\scripts\join-domain.ps1
+    . c:\vagrant\resources\scripts\join-domain.ps1
   }
   Write-Host -fore red 'Hint: vagrant reload' $box '--provision'
 
