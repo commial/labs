@@ -38,9 +38,7 @@ Vagrant.configure("2") do |config|
       # Furthermore, it could not be the default provider :
       # https://github.com/Cimpress-MCP/vagrant-winrm-syncedfolders/issues/11
 
-      unless Vagrant.has_plugin?("vagrant-winrm-syncedfolders")
-        raise 'vagrant-winrm-syncedfolders plugin is not installed!'
-      end
+      # We'll need vagrant-winrm-syncedfolders plugin
 
       override.vm.synced_folder 'resources/', '/vagrant', type: 'winrm' 
     end
@@ -91,10 +89,9 @@ Vagrant.configure("2") do |config|
       # sync_folder is not by default on all providers
       # Furthermore, WinRM could not be the default provider :
       # https://github.com/Cimpress-MCP/vagrant-winrm-syncedfolders/issues/11
-      
-      unless Vagrant.has_plugin?("vagrant-winrm-syncedfolders")
-        raise 'vagrant-winrm-syncedfolders plugin is not installed!'
-      end
+
+      # We'll need vagrant-winrm-syncedfolders plugin
+
       override.vm.synced_folder 'resources/', '/vagrant', type: 'winrm' 
     end
 
@@ -145,9 +142,7 @@ Vagrant.configure("2") do |config|
       # Furthermore, it could not be the default provider :
       # https://github.com/Cimpress-MCP/vagrant-winrm-syncedfolders/issues/11
 
-      unless Vagrant.has_plugin?("vagrant-winrm-syncedfolders")
-        raise 'vagrant-winrm-syncedfolders plugin is not installed!'
-      end
+      # We'll need vagrant-winrm-syncedfolders plugin
 
       override.vm.synced_folder 'resources/', '/vagrant', type: 'winrm' 
     end
