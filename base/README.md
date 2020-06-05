@@ -16,7 +16,7 @@ The DC must be created before the others:
 $ vagrant up dc --provision
 ```
 
-The SRV and the Client can be created in parralell:
+The SRV and the Client can be created in parallel:
 ```
 $ vagrant up srv client --provision
 ```
