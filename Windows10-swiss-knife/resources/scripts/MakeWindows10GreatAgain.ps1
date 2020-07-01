@@ -1,1 +1,0 @@
-../../../base/resources/scripts/MakeWindows10GreatAgain.ps1

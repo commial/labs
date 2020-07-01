@@ -1,1 +1,0 @@
-../../../base/resources/scripts/fix-second-network.ps1

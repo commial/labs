@@ -3,63 +3,43 @@ CONFIG = {
 }
 
 Vagrant.configure("2") do |config|
+  config.vm.box = "peru/windows-10-enterprise-x64-eval"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  
+  config.vm.provision "shell", path: "scripts/install_boxstarter.ps1"
+  config.vm.provision "shell", path: "scripts/setup.ps1"
+  config.vm.provision "shell", path: "scripts/hacking-tools.ps1"
 
-  config.vm.define "client" do |cfg |
-    cfg.vm.box = "peru/windows-10-enterprise-x64-eval"
-    cfg.vm.hostname = CONFIG[:client][:name]
-    cfg.vm.boot_timeout = 1200
+  config.vm.provider "libvirt" do |libvirt, override|
+    libvirt.cpus = CONFIG[:client][:cpus] 
+    libvirt.memory = CONFIG[:client][:memory]
 
-    cfg.vm.communicator = "winrm"
-    cfg.winrm.basic_auth_only = true
-    cfg.winrm.timeout = 1200
-    cfg.winrm.retry_limit = 20
-    cfg.vm.network :private_network, ip: "192.168.38.105", gateway: "192.168.38.1", dns: "192.168.38.102"
-    
-    cfg.vm.provision "shell", path: "resources/scripts/fix-second-network.ps1", preserve_order: true, privileged: true, args: "-ip 192.168.38.105 -dns 8.8.8.8 -gateway 192.168.38.1" 
-    cfg.vm.provision "shell", path: "resources/scripts/MakeWindows10GreatAgain.ps1",  preserve_order: true, privileged: false
-    cfg.vm.provision "shell", path: "resources/scripts/install-boxstarter.ps1",  preserve_order: true, privileged: true
-    cfg.vm.provision "reload"
+    # Relax constraints on timers
+    libvirt.hyperv_feature :name => 'relaxed', :state => 'on'
+    # Enable virtual APIC
+    libvirt.hyperv_feature :name => 'vapic', :state => 'on'
+  end
 
-    cfg.vm.provider "libvirt" do |libvirt, override|
-      libvirt.cpus = CONFIG[:client][:cpus] 
-      libvirt.memory = CONFIG[:client][:memory]
-      # Relax constraints on timers
-      libvirt.hyperv_feature :name => 'relaxed', :state => 'on'
-      # Enable virtual APIC
-      libvirt.hyperv_feature :name => 'vapic', :state => 'on'
+  config.vm.provider "vmware_desktop" do |v, override|
+    override.vm.box = "detectionlab/win10"
+    v.vmx["displayname"] = CONFIG[:client][:name]
+    v.vmx["gui.fullscreenatpoweron"] = "FALSE"
+    v.vmx["gui.viewModeAtPowerOn"] = "windowed"
+    v.memory = CONFIG[:client][:memory]
+    v.cpus = CONFIG[:client][:cpus]
+    v.gui = true
+    v.enable_vmrun_ip_lookup = false
+  end
 
-      # sync_folder is not by default on all providers
-      # Furthermore, it could not be the default provider :
-      # https://github.com/Cimpress-MCP/vagrant-winrm-syncedfolders/issues/11
-
-      # We'll need vagrant-winrm-syncedfolders plugin
-
-      override.vm.synced_folder 'resources/', '/vagrant', type: 'winrm' 
-    end
-
-    cfg.vm.provider "vmware_desktop" do |v, override|
-      override.vm.box = "detectionlab/win10"
-      v.vmx["displayname"] = CONFIG[:client][:name]
-      v.vmx["gui.fullscreenatpoweron"] = "FALSE"
-      v.vmx["gui.viewModeAtPowerOn"] = "windowed"
-      v.memory = CONFIG[:client][:memory]
-      v.cpus = CONFIG[:client][:cpus]
-      v.gui = true
-      v.enable_vmrun_ip_lookup = false
-    end
-
-    cfg.vm.provider "virtualbox" do |vb, override|
-      vb.gui = true
-      vb.name = CONFIG[:client][:name]
-      vb.default_nic_type = "82545EM"
-      vb.customize ["modifyvm", :id, "--memory", CONFIG[:client][:memory]]
-      vb.customize ["modifyvm", :id, "--cpus", CONFIG[:client][:cpus]]
-      vb.customize ["modifyvm", :id, "--vram", "32"]
-      vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
-      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-      vb.customize ["setextradata", "global", "GUI/SuppressMessages", "all" ]
-
-      override.vm.synced_folder './', '/vagrant', type: 'virtualbox'
-    end
+  config.vm.provider "virtualbox" do |vb, override|
+    vb.gui = true
+    vb.name = CONFIG[:client][:name]
+    vb.default_nic_type = "82545EM"
+    vb.customize ["modifyvm", :id, "--memory", CONFIG[:client][:memory]]
+    vb.customize ["modifyvm", :id, "--cpus", CONFIG[:client][:cpus]]
+    vb.customize ["modifyvm", :id, "--vram", "32"]
+    vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    vb.customize ["setextradata", "global", "GUI/SuppressMessages", "all" ]
   end
 end
