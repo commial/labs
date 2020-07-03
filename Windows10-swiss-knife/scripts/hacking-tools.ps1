@@ -1,4 +1,4 @@
-Add-MpPreference -ExclusionPath 'C:\Users\vagrant\Desktop\tools'
+Add-MpPreference -ExclusionPath 'C:\Users\vagrant\Desktop\'
 Add-MpPreference -ExclusionPath 'C:\Users\vagrant\AppData\Local\Temp'
 
 
@@ -11,18 +11,15 @@ Function My-Last-Tag($url) {
 # GitHub requires TLS 1.2 as of 2/27
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$tag =  My-Last-Tag "https://api.github.com/repos/gentilkiwi/mimikatz/releases"
-$mimikatzDownloadUrl = "https://github.com/gentilkiwi/mimikatz/releases/download/$tag/mimikatz_trunk.zip"
-
-$tag =  My-Last-Tag "https://api.github.com/repos/securesocketfunneling/ssf/releases"
-$SSfURL = "https://github.com/securesocketfunneling/ssf/releases/download/3.0.0/ssf-win-x86_64-$tag.zip"
+$mimi_tag =  My-Last-Tag "https://api.github.com/repos/gentilkiwi/mimikatz/releases"
+$ssf_tag =  My-Last-Tag "https://api.github.com/repos/securesocketfunneling/ssf/releases"
 
 $Tools = @(
-  @{ Name = "Mimikatz";     Url = $mimikatzDownloadUrl},
-  @{ Name = "Powersploit";  Url = "https://github.com/PowerShellMafia/PowerSploit/archive/master.zip"},
-  @{ Name = "Powercat";     Url = "https://github.com/secabstraction/PowerCat/archive/master.zip"},
-  @{ Name = "PrivescCheck"; Url = "https://github.com/itm4n/PrivescCheck/archive/master.zip"},
-  @{ Name = "Ssf";          Url = $SSfURL}
+  @{ Name = "Mimikatz";         Url = "https://github.com/gentilkiwi/mimikatz/releases/download/$mimi_tag/mimikatz_trunk.zip"},
+  @{ Name = "Powersploit";      Url = "https://github.com/PowerShellMafia/PowerSploit/archive/master.zip"},
+  @{ Name = "Powercat";         Url = "https://github.com/secabstraction/PowerCat/archive/master.zip"},
+  @{ Name = "PrivescCheck";     Url = "https://github.com/itm4n/PrivescCheck/archive/master.zip"},
+  @{ Name = "Ssf";              Url = "https://github.com/securesocketfunneling/ssf/releases/download/3.0.0/ssf-win-x86_64-$ssf_tag.zip"}
 )
 
 $Tools | %{
@@ -41,4 +38,6 @@ $Tools | %{
   }
 }
 
+cd "C:\Users\vagrant\desktop\tools\"
+git clone https://github.com/gentilkiwi/mimikatz.git mimikatz-master
 
