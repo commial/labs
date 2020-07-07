@@ -9,6 +9,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", path: "scripts/install_boxstarter.ps1"
   config.vm.provision "shell", path: "scripts/setup.ps1"
   config.vm.provision "shell", path: "scripts/hacking-tools.ps1"
+  config.vm.provision "reload"
 
   config.vm.provider "libvirt" do |libvirt, override|
     libvirt.cpus = CONFIG[:client][:cpus] 
