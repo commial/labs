@@ -1,0 +1,46 @@
+CONFIG = { 
+  :client =>   {:memory => 4096, :cpus => 4, :name => "W10-swiss-knife"}
+}
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "peru/windows-10-enterprise-x64-eval"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  
+  config.vm.provision "shell", path: "scripts/install_boxstarter.ps1"
+  config.vm.provision "shell", path: "scripts/setup.ps1"
+  config.vm.provision "shell", path: "scripts/hacking-tools.ps1"
+  config.vm.provision "reload"
+
+  config.vm.provider "libvirt" do |libvirt, override|
+    libvirt.cpus = CONFIG[:client][:cpus] 
+    libvirt.memory = CONFIG[:client][:memory]
+
+    # Relax constraints on timers
+    libvirt.hyperv_feature :name => 'relaxed', :state => 'on'
+    # Enable virtual APIC
+    libvirt.hyperv_feature :name => 'vapic', :state => 'on'
+  end
+
+  config.vm.provider "vmware_desktop" do |v, override|
+    override.vm.box = "detectionlab/win10"
+    v.vmx["displayname"] = CONFIG[:client][:name]
+    v.vmx["gui.fullscreenatpoweron"] = "FALSE"
+    v.vmx["gui.viewModeAtPowerOn"] = "windowed"
+    v.memory = CONFIG[:client][:memory]
+    v.cpus = CONFIG[:client][:cpus]
+    v.gui = true
+    v.enable_vmrun_ip_lookup = false
+  end
+
+  config.vm.provider "virtualbox" do |vb, override|
+    vb.gui = true
+    vb.name = CONFIG[:client][:name]
+    vb.default_nic_type = "82545EM"
+    vb.customize ["modifyvm", :id, "--memory", CONFIG[:client][:memory]]
+    vb.customize ["modifyvm", :id, "--cpus", CONFIG[:client][:cpus]]
+    vb.customize ["modifyvm", :id, "--vram", "32"]
+    vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    vb.customize ["setextradata", "global", "GUI/SuppressMessages", "all" ]
+  end
+end
