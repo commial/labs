@@ -1,6 +1,16 @@
 # Purpose: Sets timezone to UTC, sets hostname, creates/joins domain.
 # Source: https://github.com/StefanScherer/adfs2
 
+Param (
+    [string]$Ip
+)
+
+$subnet = $Ip -replace "\.\d+$", ""
+
+# Change metric, default is private network 
+$adapters = Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object {$_.IPAddress -match $subnet}
+$adapters | ForEach-Object {$_.IPConnectionMetric = 1 }
+
 Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) Setting timezone to UTC..."
 c:\windows\system32\tzutil.exe /s "UTC"
 

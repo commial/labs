@@ -1,10 +1,12 @@
 # Purpose: Sets up the Server and Workstations OUs
 
-$ip=$args[0]
-$dc_name=$args[1]
-$domain=$args[2]
+Param (
+  [string]$Ip,
+  [string]$Domain,
+  [string]$DcName
+)
 
-$dc1,$dc2=$domain.split('.')
+$dc1,$dc2=$Domain.split('.')
 
 Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) Checking AD services status..."
 $svcs = "adws","dns","kdc","netlogon"
@@ -14,7 +16,7 @@ Get-Service -name $svcs -ComputerName localhost | Select Machinename,Name,Status
 Add-Content "c:\windows\system32\drivers\etc\hosts" "        $ip    $dc"
 
 # Force DNS resolution of the domain
-ping /n 1 $dc_name.$domain
+ping /n 1 $DcName.$domain
 ping /n 1 $domain
 
 
@@ -26,7 +28,7 @@ try {
   Write-Host "Servers OU already exists. Moving On."
 }
 catch [Microsoft.ActiveDirectory.Management.ADIdentityNotFoundException] {
-  New-ADOrganizationalUnit -Name "Servers" -Server "$dc_name.$domain"
+  New-ADOrganizationalUnit -Name "Servers" -Server "$DcName.$domain"
 }
 
 # Create the Workstations OU if it doesn't exist
@@ -36,7 +38,7 @@ try {
   Write-Host "Workstations OU already exists. Moving On."
 }
 catch [Microsoft.ActiveDirectory.Management.ADIdentityNotFoundException] {
-  New-ADOrganizationalUnit -Name "Workstations" -Server "$dc_name.$domain"
+  New-ADOrganizationalUnit -Name "Workstations" -Server "$DcName.$domain"
 }
 
 # Sysprep breaks auto-login. Let's restore it here:

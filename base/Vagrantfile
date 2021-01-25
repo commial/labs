@@ -1,9 +1,18 @@
+
+# When base lab is included, variables should be overwritten 
+##################################################################
 CONFIG = { 
   :dns => "8.8.8.8",
-  :dc =>       {:memory => 3072, :cpus => 2, :name => "dc", :domain => "windomain.local", :ip => "192.168.38.102", :gw => "192.168.38.1"},
-  :srv =>      {:memory => 2048, :cpus => 2, :name => "srv", :domain => "windomain.local", :ip => "192.168.38.103", :gw => "192.168.38.1"},
-  :client =>   {:memory => 2048, :cpus => 1, :name => "win10", :domain => "windomain.local", :ip => "192.168.38.100", :gw => "192.168.38.1"},
+  :dc =>       {:memory => 3072, :cpus => 2, :name => "dc", :domain => "windomain.local", :ip => "192.168.38.102" },
+  :srv =>      {:memory => 2048, :cpus => 2, :name => "srv", :domain => "windomain.local", :ip => "192.168.38.103"},
+  :client =>   {:memory => 2048, :cpus => 1, :name => "win10", :domain => "windomain.local", :ip => "192.168.38.100"},
 }
+
+# Directory were base script are located
+BASE_SCRIPTS = "scripts"
+# Sync Directory directory (mainly for GPO)
+SYNC_FOLDER = "scripts"
+##################################################################
 
 Vagrant.configure("2") do |config|
 
@@ -23,16 +32,17 @@ Vagrant.configure("2") do |config|
     cfg.winrm.retry_limit = 20
     cfg.vm.network  :private_network, 
                     ip: CONFIG[:dc][:ip], 
-                    gateway: CONFIG[:dc][:gw], 
                     dns: CONFIG[:dns]
 
-    cfg.vm.provision "shell", path: "resources/scripts/provision.ps1",  preserve_order: true, privileged: false
-    cfg.vm.provision "shell", path: "resources/scripts/create-forest.ps1", 
-                              :args => "#{CONFIG[:dc][:ip]} #{CONFIG[:dc][:domain]} #{CONFIG[:dns]}",
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/fix-network.ps1", :args => "-Ip #{CONFIG[:dc][:ip]}", preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/install-rsat.ps1", preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/create-forest.ps1", 
+                              :args => "-Ip #{CONFIG[:dc][:ip]} -Name #{CONFIG[:dc][:domain]}",
                               preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/update-dns.ps1", :args => "-Ip #{CONFIG[:dc][:ip]}", preserve_order: true, privileged: false
     cfg.vm.provision "reload"
-    cfg.vm.provision "shell", path: "resources/scripts/configure-ou.ps1", 
-                              :args => "#{CONFIG[:dc][:ip]} #{CONFIG[:dc][:name]} #{CONFIG[:dc][:domain]} ",
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/configure-ou.ps1", 
+                              :args => "-Ip #{CONFIG[:dc][:ip]} -DcName #{CONFIG[:dc][:name]} -Domain #{CONFIG[:dc][:domain]} ",
                               preserve_order: true, privileged: false
 
     cfg.vm.provider "libvirt" do |libvirt, override|
@@ -49,7 +59,7 @@ Vagrant.configure("2") do |config|
 
       # We'll need vagrant-winrm-syncedfolders plugin
 
-      override.vm.synced_folder 'resources/', '/vagrant', type: 'winrm' 
+      override.vm.synced_folder "#{SYNC_FOLDER}/", '/vagrant', type: 'winrm' 
     end
 
     cfg.vm.provider "vmware_desktop" do |v, override|
@@ -72,7 +82,7 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       vb.customize ["setextradata", "global", "GUI/SuppressMessages", "all" ]
 
-      override.vm.synced_folder './', '/vagrant', type: 'virtualbox'
+      override.vm.synced_folder "#{SYNC_FOLDER}", '/vagrant', type: 'virtualbox'
     end
 
   end
@@ -87,13 +97,13 @@ Vagrant.configure("2") do |config|
     cfg.winrm.retry_limit = 20
     cfg.vm.network  :private_network, 
                     ip: CONFIG[:srv][:ip], 
-                    gateway: CONFIG[:srv][:gw], 
                     dns: CONFIG[:dns]
 
-    cfg.vm.provision "shell", path: "resources/scripts/provision.ps1",  preserve_order: true, privileged: false
-    cfg.vm.provision "shell", path: "resources/scripts/join-domain.ps1", 
-                              :args => "#{CONFIG[:srv][:domain]} #{CONFIG[:dc][:ip]}", preserve_order: true, privileged: false
-    cfg.vm.provision "shell", path: "resources/scripts/configure-rdp-smb.ps1", privileged: false
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/fix-network.ps1", :args => "-Ip #{CONFIG[:srv][:ip]}",  preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/join-domain.ps1", 
+                              :args => "-Domain #{CONFIG[:srv][:domain]} -Dns #{CONFIG[:dc][:ip]}", 
+                              preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/configure-rdp-smb.ps1", privileged: false
     cfg.vm.provision "reload"
 
     cfg.vm.provider "libvirt" do |libvirt, override|
@@ -110,7 +120,7 @@ Vagrant.configure("2") do |config|
 
       # We'll need vagrant-winrm-syncedfolders plugin
 
-      override.vm.synced_folder 'resources/', '/vagrant', type: 'winrm' 
+      override.vm.synced_folder "#{SYNC_FOLDER}/", '/vagrant', type: 'winrm' 
     end
 
     cfg.vm.provider "vmware_desktop" do |v, override|
@@ -133,7 +143,7 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       vb.customize ["setextradata", "global", "GUI/SuppressMessages", "all" ]
 
-      override.vm.synced_folder './', '/vagrant', type: 'virtualbox'
+      override.vm.synced_folder "#{SYNC_FOLDER}/", '/vagrant', type: 'virtualbox'
     end
 
   end
@@ -143,13 +153,12 @@ Vagrant.configure("2") do |config|
     cfg.vm.hostname = CONFIG[:client][:name]
     cfg.vm.network  :private_network, 
                     ip: CONFIG[:client][:ip], 
-                    gateway: CONFIG[:client][:gw], 
                     dns: CONFIG[:dns]
 
-    cfg.vm.provision "shell", path: "resources/scripts/MakeWindows10GreatAgain.ps1",  preserve_order: true, privileged: false
-    cfg.vm.provision "shell", path: "resources/scripts/provision.ps1",  preserve_order: true, privileged: false
-    cfg.vm.provision "shell", path: "resources/scripts/join-domain.ps1", 
-                             :args => "#{CONFIG[:client][:domain]} #{CONFIG[:dc][:ip]}", 
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/MakeWindows10GreatAgain.ps1",  preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/fix-network.ps1", :args => "-Ip #{CONFIG[:client][:ip]}",  preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "#{BASE_SCRIPTS}/join-domain.ps1", 
+                             :args => "-Domain #{CONFIG[:client][:domain]} -Dns #{CONFIG[:dc][:ip]}", 
                              preserve_order: true, privileged: false     
     cfg.vm.provision "reload"
 
@@ -167,7 +176,7 @@ Vagrant.configure("2") do |config|
 
       # We'll need vagrant-winrm-syncedfolders plugin
 
-      override.vm.synced_folder 'resources/', '/vagrant', type: 'winrm' 
+      override.vm.synced_folder "#{SYNC_FOLDER}/", '/vagrant', type: 'winrm' 
     end
 
     cfg.vm.provider "vmware_desktop" do |v, override|
@@ -192,7 +201,7 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
       vb.customize ["setextradata", "global", "GUI/SuppressMessages", "all" ]
 
-      override.vm.synced_folder './', '/vagrant', type: 'virtualbox'
+      override.vm.synced_folder "#{SYNC_FOLDER}/", '/vagrant', type: 'virtualbox'
     end
   end
 end
