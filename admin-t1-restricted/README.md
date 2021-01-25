@@ -118,7 +118,8 @@ SID               : S-1-5-21-1901789854-418502547-2738234678-1105
 
 Now, let's sign-out and enable the AuthenticationPolicy:
 ```
-$ vagrant powershell -c "c:\\vagrant\\enable-authpolicy.ps1" dc
+$ vagrant upload enable-authpolicy.ps1 c:\\ dc
+$ vagrant powershell -c "c:\\enable-authpolicy.ps1" dc
 ```
 
 This script adds a new AuthenticationPolicy, for the account `pikachu`, allowing him to only authenticate from `Client`.

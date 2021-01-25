@@ -1,5 +1,4 @@
 $password = ConvertTo-SecureString "vagrant" -AsPlainText -Force
-
 $Cred = New-Object System.Management.Automation.PSCredential ("Administrator", $password)
 
 $computer = Get-ADComputer -Identity client
