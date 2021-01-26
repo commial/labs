@@ -35,11 +35,11 @@ Lab
 -
 
 This lab contains:
-* A Win2016 domain "windomain.local" with:
+* A Win2019 domain "windomain.local" with:
     * User `Pik Achu <pikachu@windomain.local>`, Tier 1 Administrator, password `Bonjour1!`
     * Domain Administrator, password `vagrant`
-* A Win2016 DC
-* A Win2016 server `SRV`, considered in the Tier-1, with *RestrictedAdmin* enabled
+* A Win2019 DC
+* A Win2019 server `SRV`, considered in the Tier-1, with *RestrictedAdmin* enabled
 * A Win10 client `Client`, considered as the administration station for Tier-1
 
 Setup
