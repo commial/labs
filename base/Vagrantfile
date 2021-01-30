@@ -5,7 +5,7 @@ CONFIG = {
   :dns => "8.8.8.8",
   :dc =>       {:memory => 3072, :cpus => 2, :name => "dc", :domain => "windomain.local", :ip => "192.168.38.102" },
   :srv =>      {:memory => 2048, :cpus => 2, :name => "srv", :domain => "windomain.local", :ip => "192.168.38.103"},
-  :client =>   {:memory => 2048, :cpus => 1, :name => "win10", :domain => "windomain.local", :ip => "192.168.38.100"},
+  :client =>   {:memory => 2048, :cpus => 1, :name => "client", :domain => "windomain.local", :ip => "192.168.38.100"},
 }
 
 # Directory were base script are located
