@@ -2,8 +2,8 @@ Base lab
 =
 
 This lab contains:
-* DC: Windows 2016 server, DC of a domain "windomain.local"
-* SRV: Windows 2016 server, joined to the domain
+* DC: Windows 2019 server, DC of a domain "windomain.local"
+* SRV: Windows 2019 server, joined to the domain
 * Client: Windows 10 client, joined to the domain
 
 This lab does not need an Internet connection (once the box have been retrieved).
