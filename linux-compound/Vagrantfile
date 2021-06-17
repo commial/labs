@@ -1,0 +1,102 @@
+CONFIG = { 
+  :dc =>       {:memory => 3072, :cpus => 2, :name => "dc",},
+  :srv =>      {:memory => 2048, :cpus => 2, :name => "srv"},
+  :client =>   {:memory => 2048, :cpus => 1, :name => "client"}
+}
+
+Vagrant.configure("2") do |config|
+
+  unless Vagrant.has_plugin?("vagrant-reload")
+    raise 'vagrant-reload plugin is not installed!'
+  end
+
+  config.vm.provider "virtualbox" do |v|
+    v.linked_clone = true
+  end
+
+  config.vm.define "dc" do |cfg|
+    cfg.vm.box = "peru/windows-server-2016-standard-x64-eval"
+    cfg.vm.hostname = CONFIG[:dc][:name]
+    cfg.vm.boot_timeout = 600
+    cfg.winrm.transport = :plaintext
+    cfg.vm.communicator = "winrm"
+    cfg.winrm.basic_auth_only = true
+
+    cfg.winrm.timeout = 300
+    cfg.winrm.retry_limit = 20
+    cfg.vm.network :private_network, ip: "192.168.38.102", gateway: "192.168.38.1", dns: "8.8.8.8"
+    
+    # Added DNS here because libvirt fails to properly configure the windows client otherwise... :(
+    cfg.vm.provision "shell", path: "resources/scripts/fix-second-network.ps1", preserve_order: true, privileged: true, args: "-ip 192.168.38.102 -dns 8.8.8.8 -gateway 192.168.38.1" 
+
+    cfg.vm.provision "shell", path: "resources/scripts/provision.ps1", preserve_order: true, privileged: false
+    cfg.vm.provision "reload"
+    cfg.vm.provision "shell", path: "resources/scripts/provision.ps1", preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "resources/scripts/configure-ou.ps1", preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "resources/scripts/configure-claims-gpo.ps1", preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "resources/scripts/configure-disable-windows-defender-gpo.ps1", preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "resources/scripts/add_user.ps1", preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "resources/scripts/add_computer.ps1", preserve_order: true, privileged: false
+    cfg.vm.provision "reload"
+    cfg.vm.provision "shell", path: "resources/scripts/enable-authpolicy.ps1", preserve_order: true, privileged: false
+    cfg.vm.provision "shell", path: "resources/scripts/add-adcs.ps1", preserve_order: true, privileged: false
+
+    cfg.vm.provider "libvirt" do |libvirt, override|
+      libvirt.cpus = CONFIG[:dc][:cpus] 
+      libvirt.memory = CONFIG[:dc][:memory]
+      # Relax constraints on timers
+      libvirt.hyperv_feature :name => 'relaxed', :state => 'on'
+      # Enable virtual APIC
+      libvirt.hyperv_feature :name => 'vapic', :state => 'on'
+
+      # sync_folder is not by default on all providers
+      # Furthermore, it could not be the default provider :
+      # https://github.com/Cimpress-MCP/vagrant-winrm-syncedfolders/issues/11
+
+      # We'll need vagrant-winrm-syncedfolders plugin
+
+      override.vm.synced_folder 'resources/', '/vagrant', type: 'winrm' 
+    end
+
+  
+    cfg.vm.provider "vmware_desktop" do |v, override|
+      override.vm.box = "detectionlab/win2016"
+      v.vmx["displayname"] = CONFIG[:dc][:name] 
+      v.memory = CONFIG[:dc][:memory] 
+      v.cpus = CONFIG[:dc][:cpus] 
+      v.gui = true
+      v.enable_vmrun_ip_lookup = false
+    end
+
+    cfg.vm.provider "virtualbox" do |vb, override|
+      vb.gui = true
+      vb.name = CONFIG[:dc][:name] 
+      vb.default_nic_type = "82545EM"
+      vb.customize ["modifyvm", :id, "--memory", CONFIG[:dc][:memory] ]
+      vb.customize ["modifyvm", :id, "--cpus", CONFIG[:dc][:cpus] ]
+      vb.customize ["modifyvm", :id, "--vram", "32"]
+      vb.customize ["modifyvm", :id, "--clipboard", "bidirectional"]
+      vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+      vb.customize ["setextradata", "global", "GUI/SuppressMessages", "all" ]
+
+      override.vm.synced_folder './', '/vagrant', type: 'virtualbox'
+    end
+
+  end
+
+  config.vm.define "linux" do |linux|
+    linux.vm.box = "generic/alpine311"
+
+    linux.vm.hostname = "linux"
+    linux.vm.network "private_network", ip: "192.168.38.110", gateway: "192.168.38.1", dns: "8.8.8.8"
+
+    # Install MIT Kerberos
+    linux.vm.provision "shell", inline: "apk add --update krb5 krb5-pkinit"
+    linux.vm.provision "file", source: "resources/krb5.conf", destination: "/tmp/krb5.conf"
+    linux.vm.provision "shell", inline: "mv /tmp/krb5.conf /etc/krb5.conf"
+    linux.vm.provision "file", source: "resources/krb5.pkinit.conf", destination: "/tmp/krb5.pkinit.conf"
+    linux.vm.provision "shell", inline: "mv /tmp/krb5.pkinit.conf /etc/krb5.pkinit.conf"
+    
+  end
+  
+end

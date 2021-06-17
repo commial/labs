@@ -1,0 +1,49 @@
+dn: CN=KerberosAuthenticationClient,CN=Certificate Templates,CN=Public Key Services,CN=Services,CN=Configuration,DC=windomain,DC=local
+changetype: add
+cn: KerberosAuthenticationClient
+displayName: Kerberos Authentication Client
+distinguishedName: 
+ CN=KerberosAuthenticationClient,CN=Certificate Templates,CN=Public Key Service
+ s,CN=Services,CN=Configuration,DC=windomain,DC=local
+dSCorePropagationData: 16010101000000.0Z
+flags: 131168
+instanceType: 4
+msPKI-Cert-Template-OID: 
+ 1.3.6.1.4.1.311.21.8.2085862.12025780.10961055.7294984.13338387.47.6892586.328
+ 201
+msPKI-Certificate-Application-Policy: 1.3.6.1.5.2.3.5
+msPKI-Certificate-Application-Policy: 1.3.6.1.4.1.311.20.2.2
+msPKI-Certificate-Application-Policy: 1.3.6.1.5.5.7.3.1
+msPKI-Certificate-Application-Policy: 1.3.6.1.5.5.7.3.2
+msPKI-Certificate-Name-Flag: 4194305
+msPKI-Enrollment-Flag: 0
+msPKI-Minimal-Key-Size: 2048
+msPKI-Private-Key-Flag: 16842768
+msPKI-RA-Signature: 0
+msPKI-Template-Minor-Revision: 4
+msPKI-Template-Schema-Version: 2
+name: KerberosAuthenticationClient
+objectCategory: 
+ CN=PKI-Certificate-Template,CN=Schema,CN=Configuration,DC=windomain,DC=local
+objectClass: top
+objectClass: pKICertificateTemplate
+pKICriticalExtensions: 2.5.29.7
+pKICriticalExtensions: 2.5.29.17
+pKICriticalExtensions: 2.5.29.15
+pKIDefaultCSPs: 1,Microsoft RSA SChannel Cryptographic Provider
+pKIDefaultKeySpec: 1
+pKIExpirationPeriod:: AEA5hy7h/v8=
+pKIExtendedKeyUsage: 1.3.6.1.5.2.3.5
+pKIExtendedKeyUsage: 1.3.6.1.4.1.311.20.2.2
+pKIExtendedKeyUsage: 1.3.6.1.5.5.7.3.1
+pKIExtendedKeyUsage: 1.3.6.1.5.5.7.3.2
+pKIKeyUsage:: oAA=
+pKIMaxIssuingDepth: 0
+pKIOverlapPeriod:: AICmCv/e//8=
+revision: 100
+showInAdvancedViewOnly: TRUE
+uSNChanged: 21029
+uSNCreated: 20995
+whenChanged: 20210610081140.0Z
+whenCreated: 20210610075945.0Z
+
