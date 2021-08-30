@@ -1,0 +1,13 @@
+diff --git a/tools/tpm2_pkcs11/utils.py b/tools/tpm2_pkcs11/utils.py
+index b803f4c..ac00a9b 100644
+--- a/tools/tpm2_pkcs11/utils.py
++++ b/tools/tpm2_pkcs11/utils.py
+@@ -262,7 +262,7 @@ def pemcert_to_attrs(certpath):
+         d = derenc.encode
+ 
+         bercert = b(cert)
+-        hexbercert = h(bercert).decode()
++        hexbercert = h(substrate).decode()
+ 
+         # the CKA_CHECKSUM attrs is the first 3 bytes of a sha1hash
+         m = hashlib.sha1()

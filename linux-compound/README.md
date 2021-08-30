@@ -190,6 +190,90 @@ These fields are the one defined by the [RFC4556](https://datatracker.ietf.org/d
 
 A decoded version is available on [this very useful website](http://aurelien26.free.fr/kerberos/05_pkinit/AS_REQ.html).
 
+## Storing the certificate in the TPM
+
+Having the certificate in a portable file makes it stealable and usable by several persons.
+
+A better approach is to store it in a secure-element, such as a portable token or the computer TPM. That way, once imported, the certificate private elements are no more (easily) exportables.
+
+It gives strong garanties that the device authenticating is the expected one.
+
+For easier experimentation, this lab uses a software TPM. A few choices are available:
+
+* [IBM Sw TPM2](https://sourceforge.net/projects/ibmswtpm2/)
+* [SwTPM](https://github.com/stefanberger/swtpm)
+
+Both are good choices. Arbitrarily, the first one will be used.
+
+Again, to make thing easier, an Arch Linux and its up-to-date packages will be used.
+
+The following commands install the software TPM and provides it the previously exported machine certificate `cert.pem`:
+```sh
+# Import the machine certificate
+$ vagrant upload cert.pem /tmp/cert.pem linux2
+# Install the TPM software
+$ vagrant ssh linux2
+[vagrant@linux2 ~]$ chmod +x install-tpm.sh 
+[vagrant@linux2 ~]$ ./install-tpm.sh 
+...
+```
+
+Using the following configuration:
+```config
+[realms]
+	WINDOMAIN.LOCAL = {
+			pkinit_kdc_hostname = dc.windomain.local
+			pkinit_anchors = FILE:/tmp/cert.pem
+			pkinit_identities = PKCS11:/usr/lib/pkcs11/libtpm2_pkcs11.so
+			kdc = 192.168.38.102:88
+			default_domain = WINDOMAIN.LOCAL
+	}
+```
+
+One can ask for a certificate using the (software) TPM:
+```sh
+# List objects in the TPM
+$ alias tpm2pkcs11-tool='pkcs11-tool --module /usr/lib/pkcs11/libtpm2_pkcs11.so'
+$ tpm2pkcs11-tool --list-objects --login --pin=myuserpin
+Using slot 0 with a present token (0x1)
+Private Key Object; RSA 
+  label:      
+  ID:         34336561643437646562393237356265
+  Usage:      decrypt, sign
+  Access:     sensitive, extractable
+  Allowed mechanisms: RSA-X-509,RSA-PKCS-OAEP,RSA-PKCS,SHA256-RSA-PKCS,SHA384-RSA-PKCS,SHA512-RSA-PKCS,RSA-PKCS-PSS,SHA1-RSA-PKCS-PSS,SHA256-RSA-PKCS-PSS,SHA384-RSA-PKCS-PSS,SHA512-RSA-PKCS-PSS
+Public Key Object; RSA 2048 bits
+  label:      
+  ID:         34336561643437646562393237356265
+  Usage:      encrypt, verify
+  Access:     none
+Certificate Object; type = X.509 cert
+  label:      
+  subject:    DN: CN=client@WINDOMAIN.LOCAL
+  ID:         34336561643437646562393237356265
+# Use it to ask a TGT
+$ KRB5_CONFIG=krb5.tpm.conf kinit client@WINDOMAIN.LOCAL
+label                            PIN: 
+[vagrant@linux2 ~]$ klist
+Ticket cache: FILE:/tmp/krb5cc_1000
+Default principal: client@WINDOMAIN.LOCAL
+
+Valid starting       Expires              Service principal
+08/30/2021 11:40:45  08/30/2021 21:40:45  krbtgt/WINDOMAIN.LOCAL@WINDOMAIN.LOCAL
+	renew until 08/31/2021 11:40:41
+```
+
+Note: If you need to debug the kerberos part, use `KRB5_TRACE=/dev/stdout`. For the TPM library, use `TPM2_PKCS11_LOG_LEVEL=2`.
+
+**TEMPORARY BUG**: Due to https://github.com/tpm2-software/tpm2-pkcs11/issues/700, the certificate is not properly imported in the TPM. This message will be removed once the bug fix. As a workaround, one can replace `bercert` by `substrate` in [this line](https://github.com/tpm2-software/tpm2-pkcs11/blob/master/tools/tpm2_pkcs11/utils.py#L264) or use [this patch file](resources/scripts/tpm2_pkcs11.patch). This is already included in `install-tpm.sh`
+
+## Going further
+
+Room for improvements:
+
+* Generate the keypair on the TPM, avoiding secret key export. Then, a CSR based on this key should be submit to the AD-CS, to retrieve the actual certificate.
+* Use the `msDS-KeyCredentialLink` AD attribute, as *Windows Hello for Business*, to provide a self-signed certificate without the need for an AD-CS PKI.
+
 ## References
 
 * Parsed tickets: http://aurelien26.free.fr/kerberos/
@@ -200,3 +284,4 @@ A decoded version is available on [this very useful website](http://aurelien26.f
 * CCache file format : https://web.mit.edu/kerberos/krb5-devel/doc/formats/ccache_file_format.html
 * MSDN - [Domain-joined Device Public Key Authentication](https://docs.microsoft.com/en-us/windows-server/security/kerberos/domain-joined-device-public-key-authentication)
 * MSDN - [[MS-PKCA]](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-pkca/d0cf1763-3541-4008-a75f-a577fa5e8c5b)
+* [Certified Pre-Owned: Abusing Active Directory Certificate Services](https://www.specterops.io/assets/resources/Certified_Pre-Owned.pdf)
