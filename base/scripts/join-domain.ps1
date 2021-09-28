@@ -10,8 +10,8 @@ Param (
 if ((gwmi win32_computersystem).partofdomain -eq $false) {
   $subnet = $dns -replace "\.\d+$", ""
 
-  Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) Joining the domain..."
-  Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) First, set DNS to DC to join the domain..."
+  Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) Joining the domain $Domain ..."
+  Write-Host "$('[{0:HH:mm}]' -f (Get-Date)) First, set DNS to DC to join the domain ($Dns)..."
 
   $adapters = Get-WmiObject Win32_NetworkAdapterConfiguration | Where-Object {$_.IPAddress -match $subnet}
   $adapters | ForEach-Object {$_.SetDNSServerSearchOrder($Dns)}
